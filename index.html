@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <title>Cámara AR Samsung Style</title>
+
+  <!-- A-Frame + AR.js + GLTF Loader -->
+  <script src="https://aframe.io/releases/1.0.0/aframe.min.js"></script>
+  <script src="https://raw.githack.com/jeromeetienne/AR.js/2.1.4/aframe/build/aframe-ar.js"></script>
+  <script src="https://rawgit.com/donmccurdy/aframe-extras/master/dist/aframe-extras.loaders.min.js"></script>
+
+  <!-- Font Awesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html, body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      font-family: sans-serif;
+    }
+
+    a-scene {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      z-index: 0;
+    }
+
+    .camera-ui {
+      position: fixed;
+      top: 0;
+      left: 0;
+      z-index: 10;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 1rem;
+      pointer-events: none;
+    }
+
+    .top-buttons,
+    .bottom-buttons {
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      pointer-events: auto;
+    }
+
+    .circle-button {
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      background-color: rgba(255, 255, 255, 0.2);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-size: 22px;
+      color: white;
+      border: 2px solid rgba(255,255,255,0.4);
+      cursor: pointer;
+      backdrop-filter: blur(5px);
+    }
+
+    .circle-button:hover {
+      background-color: rgba(255,255,255,0.3);
+    }
+
+    .main-button {
+      width: 70px;
+      height: 70px;
+      background-color: white;
+      border: 3px solid white;
+      color: black;
+      font-size: 26px;
+    }
+
+    @media screen and (max-width: 600px) {
+      .circle-button {
+        width: 50px;
+        height: 50px;
+        font-size: 18px;
+      }
+
+      .main-button {
+        width: 60px;
+        height: 60px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Escena AR.js con tu modelo -->
+  <a-scene embedded arjs="debugUIEnabled: false;" vr-mode-ui="enabled: false">
+    <a-marker preset="kanji">
+      <a-entity 
+        gltf-model="url(burger.gltf)" 
+        rotation="-45 0 0">
+      </a-entity>
+    </a-marker>
+    <a-entity camera></a-entity>
+  </a-scene>
+
+  <!-- UI tipo cámara Samsung -->
+  <div class="camera-ui">
+    <!-- Top -->
+    <div class="top-buttons" style="color:white">
+      <div title="Ajustes">
+        <i class="fas fa-cog"></i>
+      </div>
+      <div  title="Flash">
+        <i class="fas fa-bolt"></i>
+      </div>
+      <div  title="Temporizador">
+        <i class="fas fa-clodck" style="font-size: 12px;">Full</i>
+      </div>
+      <div  title="Temporizador">
+        <i class="fas fa-clodck" style="font-size: 12px;">12M</i>
+      </div>
+      <div  title="Temporizador">
+        <i class="fas fa-clock"></i>
+      </div>
+      <div  title="Temporizador">
+        <i class="fas fa-layer-group"></i>
+      </div>
+    </div>
+
+    <!-- Bottom -->
+    <div class="bottom-buttons">
+      <div class="circle-button" title="Galería">
+        <i class="fas fa-image"></i>
+      </div>
+
+      <div class="circle-button main-button" title="Capturar">
+        <i class="fas fa-camera"></i>
+      </div>
+
+      <div class="circle-button" title="Cambiar cámara">
+        <i class="fas fa-sync-alt"></i>
+      </div>
+    </div>
+  </div>
+
+</body>
+
+<script>
+  let currentFacingMode = 'environment'; // empieza con trasera
+
+  document.querySelectorAll('.circle-button').forEach(btn => {
+    if (btn.title === "Cambiar cámara") {
+      btn.addEventListener('click', async () => {
+        try {
+          currentFacingMode = currentFacingMode === 'environment' ? 'user' : 'environment';
+
+          const stream = await navigator.mediaDevices.getUserMedia({
+            audio: false,
+            video: {
+              facingMode: { exact: currentFacingMode }
+            }
+          });
+
+          const video = document.querySelector('video');
+          if (video) {
+            video.srcObject = stream;
+            await video.play();
+          }
+        } catch (err) {
+          console.error('Error al cambiar la cámara:', err);
+          alert('No se pudo cambiar la cámara. Puede que tu dispositivo no lo permita.');
+        }
+      });
+    }
+  });
+</script>
+
+</html>
